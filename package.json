@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "build:gh-pages": "ng build ng-drag-drop-list && ng build --prod ",
+    "build:prod": "ng build ng-drag-drop-list && ng build --prod ",
     "deploy:gh-pages": "gh-pages -r https://$GITHUB_TOKEN@github.com/yairtawil/ng-drag-drop-list -d dist/demo",
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test",
+    "test": "ng test demo --watch=false",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },

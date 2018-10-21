@@ -8,7 +8,6 @@ before_install:
 
 install:
   - "npm install"
-  - "npm run build:gh-pages"
 
 # Init GUI
 before_script:
@@ -18,11 +17,13 @@ before_script:
 
 script:
   - "npm run test"
+  - "npm run build:prod"
 
 cache:
   directories:
      - "./node_modules"
-
+before_deploy:
+  -
 deploy:
   provider: script
   script: npm run build:gh-pages
