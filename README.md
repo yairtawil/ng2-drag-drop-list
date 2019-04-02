@@ -46,11 +46,11 @@ import { Component } from '@angular/core';
 ...
 })
 export class AppComponent {
-  colors = ['blue','red','greenyellow','purple','grey'];
+  colors = ['blue', 'red', 'greenyellow', 'purple', 'grey'];
 }
 ```
 
-use the directive in your html templates:
+Use `dragDropList` directive on the drag elements:
 
 ```html
     <div *ngFor="let color of colors" 
@@ -59,11 +59,13 @@ use the directive in your html templates:
     </div>
 ```
 
-For specific drag element `trigger` input:
+For specific trigger for dragging use `trigger`:
 
 ```html
     <div *ngFor="let color of colors" 
-         [(dragDropList)]="colors">
-        {{color}}
+         [(dragDropList)]="colors"
+         [trigger]="trigger">
+          <button #trigger> TRIGER </button>
+          {{color}}
     </div>
 ```
