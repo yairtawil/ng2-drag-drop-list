@@ -3,14 +3,17 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "build:prod": "ng build ng-drag-drop-list && cp README.md ./dist/ng-drag-drop-list/README.md && ng build --prod",
-    "publish:lib": "npm publish dist/ng-drag-drop-list",
-    "deploy:gh-pages": "gh-pages -r https://$GITHUB_TOKEN@github.com/yairtawil/ng-drag-drop-list.git -d dist/demo",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test demo --watch=false",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "test:lib": "ng test ng-drag-drop-list",
+    "lint:lib": "ng lint ng-drag-drop-list",
+    "build:lib": "ng build ng-drag-drop-list && cp README.md ./dist/ng-drag-drop-list/README.md",
+    "build:example": "ng build --prod --base-href=https://yairtawil.github.io/ng-drag-drop-list/ --deploy-url=https://yairtawil.github.io/ng-drag-drop-list/",
+    "publish:lib": "npm publish dist/ng-drag-drop-list",
+    "deploy:gh-pages": "gh-pages -r https://$GITHUB_TOKEN@github.com/yairtawil/ng-drag-drop-list.git -d dist/demo"
   },
   "dependencies": {
     "@angular/animations": "^7.2.2",
