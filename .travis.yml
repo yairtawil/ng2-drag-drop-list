@@ -20,7 +20,7 @@ script:
 
 cache:
   directories:
-     - "./node_modules"
+    - "./node_modules"
 
 before_deploy:
   - "npm run build:prod"
@@ -28,6 +28,7 @@ before_deploy:
 deploy:
   - provider: script
     script:
+      - "cd../../"
       - "npm run deploy:gh-pages"
     skip_cleanup: true
     on:
