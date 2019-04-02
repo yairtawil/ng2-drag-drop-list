@@ -1,177 +1,132 @@
-import { Directive, ElementRef, EventEmitter, HostBinding, HostListener, Input, Output } from '@angular/core';
+import { Directive, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { fromEvent, Subscription, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Directive({
   selector: '[dragDropList]'
 })
+export class DragDropListDirective implements OnInit, OnDestroy {
+  protected _trigger: HTMLElement = this.elementRef.nativeElement;
 
-export class DragDropListDirective {
+  data: {
+    dragElement: HTMLElement;
+    dropElement?: HTMLElement;
+    dragElementInitialBoundingBox: ClientRect;
+    targetElementInitialBoundingBox: ClientRect;
+  };
 
-  @Input() dragDropList: [number, Array<any>];
-  @Input() dragged: string;
-  @Input() draggOvered: string;
-  @HostBinding() draggable = true;
-  @Output() onDrop = new EventEmitter();
-  shiftDown = false;
+  @Input() dragDropList: Array<any>;
 
-  @HostListener('dragstart', ['$event'])
-  dragstart($event: DragEvent) {
-    const dragIndex: string = this.dragDropList[0].toString();
-    $event.dataTransfer.setData('dragIndex', dragIndex);
-    this.addDraggedStyle();
-  }
-
-  @HostListener('dragend')
-  dragend() {
-    this.removeDraggedStyle();
-  }
-
-  @HostListener('dragover', ['$event'])
-  dragover($event) {
-    $event.preventDefault();
-    this.addDragOveredStyle();
-  }
-
-  @HostListener('dragleave')
-  dragleave() {
-    this.removeDragOveredStyle();
-  }
-
-  @HostListener('drop', ['$event'])
-  drop($event: DragEvent) {
-    const dropIndex = this.dragDropList[0];
-    const dragIndex: number = +$event.dataTransfer.getData('dragIndex');
-    const array = this.dragDropList[1];
-    this.removeDragOveredStyle();
-    if (dropIndex !== dragIndex) {
-      const temp = array[dragIndex];
-      array[dragIndex] = array[dropIndex];
-      array[dropIndex] = temp;
-      this.onDrop.emit(array);
-    }
-  }
-
-  @HostListener('keyup', ['$event'])
-  keyup($event) {
-    switch ($event.which) {
-      case 16:
-        this.shiftDown = false;
-        this.removeDraggedStyle();
-        break;
-    }
-  }
-
-  @HostListener('keydown', ['$event'])
-  keydown($event) {
-    switch ($event.which) {
-      case 38:
-        this.keydownDown();
-        break;
-      case 40:
-        this.keydownUp();
-        break;
-      case 16:
-        this.shiftDown = true;
-        this.addDraggedStyle();
-        break;
-    }
-  }
-
-  constructor(private el: ElementRef) {
-  }
-
-  removeDragOveredStyle() {
-    if (this.draggOvered) {
-      this.el.nativeElement.classList.remove(this.draggOvered);
+  @Input()
+  set trigger(value: HTMLElement) {
+    if (this.elementRef.nativeElement.hasChildNodes(value)) {
+      this._trigger = value;
     } else {
-      this.el.nativeElement.style.outline = 'none';
+      console.error('Input "dragItem" must be a valid child of:', this.elementRef.nativeElement);
+      throw new Error();
     }
   }
 
-  addDragOveredStyle() {
-    if (this.draggOvered) {
-      this.el.nativeElement.classList.add(this.draggOvered);
+  get trigger() {
+    return this._trigger;
+  }
+
+  @Output() dragDropListChange = new EventEmitter<Array<any>>();
+  @Input() duration = 500;
+  mousedownSubscription: Subscription;
+
+  get brothers(): Array<HTMLElement> {
+    return <HTMLElement[]>Array
+      .from(this.elementRef.nativeElement.parentElement.children)
+      .filter((elem: HTMLElement): any => {
+        return Array.from(elem.attributes)
+          .map((attr) => attr.nodeName)
+          .some((name) => name.includes('drag-drop-list'));
+      });
+  }
+
+  mouseMove = ($event) => {
+    const { dragElement, dropElement, targetElementInitialBoundingBox } = this.data;
+    const { width: targetWidth, height: targetHeight, left: targetLeft, top: targetTop } = targetElementInitialBoundingBox;
+    const { left, top, width, height } = dragElement.getBoundingClientRect();
+    if (dropElement) {
+      dropElement.style.filter = null;
+    }
+    dragElement.style.pointerEvents = 'none';
+    const elements = document.elementsFromPoint(left + (width / 2), top + (height / 2));
+    const newDropElement = <HTMLElement>elements.find((element: HTMLElement) => this.brothers.includes(element));
+    if (newDropElement) {
+      dragElement.style.pointerEvents = null;
+      newDropElement.style.filter = 'blur(2px)';
+    }
+    this.data.dropElement = newDropElement;
+    dragElement.style.transition = null;
+    dragElement.style.zIndex = '200';
+    const translateX = $event.clientX - targetLeft - (targetWidth / 2);
+    const translateY = $event.clientY - targetTop - (targetHeight / 2);
+    dragElement.style.transform = `translate(${translateX}px, ${translateY}px)`;
+  };
+
+  mouseUp = () => {
+    document.removeEventListener('mousemove', this.mouseMove);
+    document.removeEventListener('mouseup', this.mouseUp);
+    const { dragElement, dropElement, dragElementInitialBoundingBox } = this.data;
+    const { left: initialLeft, top: initialTop, width: dragWidth, height: dragHeight } = dragElementInitialBoundingBox;
+    document.body.style.userSelect = null;
+    dragElement.style.transition = `transform ${this.duration}ms`;
+
+    timer(this.duration).pipe(tap(() => {
+      dragElement.style.pointerEvents = null;
+      dragElement.style.transition = null;
+      dragElement.style.transform = null;
+      dragElement.style.zIndex = null;
+      if (dropElement) {
+        dropElement.style.transform = null;
+        dropElement.style.zIndex = null;
+        dropElement.style.transition = null;
+        const cloneList = [...this.dragDropList];
+        const dragIndex = this.brothers.indexOf(dragElement);
+        const dropIndex = this.brothers.indexOf(dropElement);
+        cloneList[dragIndex] = this.dragDropList[dropIndex];
+        cloneList[dropIndex] = this.dragDropList[dragIndex];
+        this.dragDropListChange.emit(cloneList);
+      }
+    })).subscribe();
+
+    if (dropElement) {
+      const { left: dropLeft, top: dropTop } = dropElement.getBoundingClientRect();
+      dropElement.style.filter = null;
+      dropElement.style.transition = `transform ${this.duration}ms`;
+      dropElement.style.transform = `translate(${initialLeft - dropLeft}px, ${initialTop - dropTop}px)`;
+      dragElement.style.transform = `translate(${dropLeft - initialLeft}px, ${dropTop - initialTop}px)`;
+      dropElement.style.zIndex = '199';
+      dropElement.classList.remove('droppable');
     } else {
-      this.el.nativeElement.style.outline = '2px dashed lightblue';
+      dragElement.style.transform = `translate(0, 0)`;
     }
+
+    this.data = null;
+  };
+
+  constructor(protected elementRef: ElementRef) {
   }
 
-  addDraggedStyle() {
-    if (this.dragged) {
-      this.el.nativeElement.classList.add(this.dragged);
-    } else {
-      this.el.nativeElement.style.opacity = 0.6;
-    }
+  ngOnInit(): void {
+    this.mousedownSubscription = fromEvent(this.trigger, 'mousedown').pipe(
+      tap(() => {
+          const dragElement = this.elementRef.nativeElement;
+          document.body.style.userSelect = 'none';
+          const dragElementInitialBoundingBox = dragElement.getBoundingClientRect();
+          const targetElementInitialBoundingBox = this.trigger.getBoundingClientRect();
+          this.data = { dragElement, dragElementInitialBoundingBox, targetElementInitialBoundingBox };
+          document.addEventListener('mousemove', this.mouseMove);
+          document.addEventListener('mouseup', this.mouseUp);
+        }
+      )).subscribe();
   }
 
-  removeDraggedStyle() {
-    if (this.dragged) {
-      this.el.nativeElement.classList.remove(this.dragged);
-    } else {
-      this.el.nativeElement.style.opacity = 1;
-    }
-  }
-
-  keydownDown() {
-    if (this.shiftDown) {
-      this.switchPrev();
-    } else {
-      this.focusPrev();
-    }
-  }
-
-  keydownUp() {
-    if (this.shiftDown) {
-      this.switchNext();
-    } else {
-      this.focusNext();
-    }
-  }
-
-  switchNext() {
-    const dropIndex = this.dragDropList[0];
-    const array = this.dragDropList[1];
-    let swapIndex, temp;
-    swapIndex = (dropIndex + 1) % array.length;
-    temp = array[dropIndex];
-    array[dropIndex] = array[swapIndex];
-    array[swapIndex] = temp;
-    setTimeout(() => {
-      this.el.nativeElement.focus();
-    }, 0);
-  }
-
-  switchPrev() {
-    const dropIndex = this.dragDropList[0];
-    const array = this.dragDropList[1];
-    let swapIndex, temp;
-    swapIndex = (dropIndex - 1) % array.length;
-    if (swapIndex < 0) {
-      swapIndex += array.length;
-    }
-    temp = array[dropIndex];
-    array[dropIndex] = array[swapIndex];
-    array[swapIndex] = temp;
-    setTimeout(() => {
-      this.el.nativeElement.focus();
-    }, 0);
-  }
-
-  focusNext() {
-    const elem: HTMLElement = this.el.nativeElement;
-    const brothers: HTMLCollection = elem.parentElement.children;
-    const array = [].slice.call(brothers);
-    const myIndex = array.indexOf(this.el.nativeElement);
-    const nextIndex = (myIndex + 1) % array.length;
-    array[nextIndex].focus();
-  }
-
-  focusPrev() {
-    const elem: HTMLElement = this.el.nativeElement;
-    const brothers: HTMLCollection = elem.parentElement.children;
-    const array = [].slice.call(brothers);
-    const myIndex = array.indexOf(this.el.nativeElement);
-    const prevIndex = (myIndex - 1) < 0 ? array.length + (myIndex - 1) : (myIndex - 1);
-    array[prevIndex].focus();
+  ngOnDestroy() {
+    this.mousedownSubscription.unsubscribe();
   }
 
 }
