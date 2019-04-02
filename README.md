@@ -1,16 +1,26 @@
 # ng-drag-drop-list
 
+Ng Drag Drop List is an [Angular](https://angular.io/) library for drag and drop elements on list.
+
 [![NPM](https://nodei.co/npm/ng-drag-drop-list.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/ng-drag-drop-list/)
+
+[![Build Status](https://travis-ci.org/yairtawil/ng-drag-drop-list.svg?branch=master)](https://travis-ci.org/yairtawil/ng-drag-drop-list)
 
 **[Demo](https://yairtawil.github.io/ng-drag-drop-list/)**
 
-## Installation
+### Installation
 
+##### Install with `npm`
 ```shell
 npm install ng-drag-drop-list
 ```
 
-## Usage
+##### Install with `yarn`
+```shell
+yarn add ng-drag-drop-list
+```
+
+### Usage
 
 Add `DragDropListModule` to your list of module imports:
 
@@ -27,58 +37,33 @@ import { DragDropListModule } from 'ng-drag-drop-list';
 export class AppModule { }
 
 ```
-Create an array in your component (of colors for example)
+Create a list in your component (of colors for example)
 
 ```typescript
 import { Component } from '@angular/core';
 
 @Component({
 ...
-templateUrl: './app.component.html',
 })
 export class AppComponent {
-  arr: string[] = ['blue','red','greenyellow','purple','grey'];
+  colors = ['blue','red','greenyellow','purple','grey'];
 }
 ```
 
 use the directive in your html templates:
 
 ```html
-    <div *ngFor="let item of arr; let index = index" 
-         [dragDropList]="[index, array]" 
-         [style.background]="item" tabindex="0">{{item}}({{index }})
+    <div *ngFor="let color of colors" 
+         [(dragDropList)]="colors">
+        {{color}}
     </div>
 ```
 
-## Inputs
+For specific drag element `trigger` input:
 
-### requireds
-
-```typescript
-    [dragDropList]="[index, array]"
-```
-
-* index and array from *ngFor (```item of array; let index="index" ```) 
-
-### optionals
-
-adding classes for dragged & drag-overed:
-
-`[dragged]`
-and:
-`[drag-overed]`
-for example:
-
-
-```css
-    .my-dragged-class{
-        opacity: .5;
-    }
-    .my-dragged-over-class{
-        border: 1px solid black;
-    }
-```
-
-```typescript
-    <div [dragDropList]="[index, array]" dragged="my-dragged-class" drag-overed="my-dragged-over-class">{{index}}</div>
+```html
+    <div *ngFor="let color of colors" 
+         [(dragDropList)]="colors">
+        {{color}}
+    </div>
 ```
