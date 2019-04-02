@@ -1,12 +1,13 @@
-# ng-drag-drop-list
-
-Ng Drag Drop List is an [Angular](https://angular.io/) library for drag and drop elements on list.
-
 [![NPM](https://nodei.co/npm/ng-drag-drop-list.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/ng-drag-drop-list/)
 
 [![Build Status](https://travis-ci.org/yairtawil/ng-drag-drop-list.svg?branch=master)](https://travis-ci.org/yairtawil/ng-drag-drop-list)
 
 **[Demo](https://yairtawil.github.io/ng-drag-drop-list/)**
+
+# ng-drag-drop-list
+
+Ng Drag Drop List is an [Angular](https://angular.io/) library for drag and drop elements on list.
+
 
 ### Installation
 
