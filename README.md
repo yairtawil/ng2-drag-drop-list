@@ -50,7 +50,7 @@ export class AppComponent {
 }
 ```
 
-Use `dragDropList` directive on the drag elements:
+Use `dragDropList` directive on the drag elements (TWO-WAY binding):
 
 ```html
     <div *ngFor="let color of colors" 
@@ -59,7 +59,7 @@ Use `dragDropList` directive on the drag elements:
     </div>
 ```
 
-For specific trigger for dragging use `trigger`:
+For specific dragging trigger:
 
 ```html
     <div *ngFor="let color of colors" 
@@ -69,3 +69,15 @@ For specific trigger for dragging use `trigger`:
           {{color}}
     </div>
 ```
+### Api
+
+| Input          | Type                              | Default         |
+|------------------|-------------------------------------|--------------|
+| dragDropList   |            Array |           -  |
+| trigger      |           HTMLElement |   nativeElement         |
+| duration       |            number |  300  |
+
+| Output          | Emit                              |
+|------------------|-------------------------------------|
+| dragDropListChange   |            Array |           
+
