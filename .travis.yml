@@ -19,7 +19,6 @@ script:
   - "npm run lint:lib"
   - "npm run test:lib"
   - "npm run build:lib"
-  - "npm run build:prod"
 
 cache:
   directories:

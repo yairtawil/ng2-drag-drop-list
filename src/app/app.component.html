@@ -28,7 +28,7 @@
         [(dragDropList)]="colors"
         (dragDropListChange)="toast($event)"
         [style.background]="rgbTOrgba(color, 0.1)"
-        duration="0"
+        duration="200"
         [trigger]="trigger._elementRef.nativeElement">
         <div class="header">
 
@@ -50,7 +50,7 @@
     <h4> Heroes </h4>
 
     <div class="list">
-      <mat-card *ngFor="let hero of heroes; index as index" [(dragDropList)]="heroes">
+      <mat-card *ngFor="let hero of heroes" [(dragDropList)]="heroes">
         <img mat-card-image [src]="hero">
       </mat-card>
     </div>
