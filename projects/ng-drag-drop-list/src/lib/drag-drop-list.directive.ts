@@ -36,6 +36,7 @@ export class DragDropListDirective implements OnInit, OnDestroy {
   @Output() dragDropListChange = new EventEmitter<Array<any>>();
   @Input() duration = 500;
   mousedownSubscription: Subscription;
+  touchSubscription: Subscription;
 
   get brothers(): Array<HTMLElement> {
     return <HTMLElement[]>Array
@@ -46,6 +47,31 @@ export class DragDropListDirective implements OnInit, OnDestroy {
           .some((name) => name.includes('dragdroplist'));
       });
   }
+
+  touchMove = ($event) => {
+    $event.preventDefault();
+    $event.stopPropagation();
+    const { dragElement, dropElement, targetElementInitialBoundingBox } = this.data;
+    const { width: targetWidth, height: targetHeight, left: targetLeft, top: targetTop } = targetElementInitialBoundingBox;
+    const { left, top, width, height } = dragElement.getBoundingClientRect();
+    if (dropElement) {
+      dropElement.style.filter = null;
+    }
+    dragElement.style.pointerEvents = 'none';
+    const elements = document.elementsFromPoint(left + (width / 2), top + (height / 2));
+    const newDropElement = <HTMLElement>elements.find((element: HTMLElement) => this.brothers.includes(element));
+    if (newDropElement) {
+      dragElement.style.pointerEvents = null;
+      newDropElement.style.filter = 'blur(2px)';
+    }
+    this.data.dropElement = newDropElement;
+    dragElement.style.transition = null;
+    dragElement.style.zIndex = '200';
+    const eventTarget = $event.changedTouches[0];
+    const translateX = eventTarget.clientX - targetLeft - (targetWidth / 2);
+    const translateY = eventTarget.clientY - targetTop - (targetHeight / 2);
+    dragElement.style.transform = `translate(${translateX}px, ${translateY}px)`;
+  };
 
   mouseMove = ($event) => {
     const { dragElement, dropElement, targetElementInitialBoundingBox } = this.data;
@@ -125,10 +151,23 @@ export class DragDropListDirective implements OnInit, OnDestroy {
           document.addEventListener('mouseup', this.mouseUp);
         }
       )).subscribe();
+
+    this.touchSubscription = fromEvent(this.trigger, 'touchstart').pipe(
+      tap(() => {
+        const dragElement = this.elementRef.nativeElement;
+        document.body.style.userSelect = 'none';
+        const dragElementInitialBoundingBox = dragElement.getBoundingClientRect();
+        const targetElementInitialBoundingBox = this.trigger.getBoundingClientRect();
+        this.data = { dragElement, dragElementInitialBoundingBox, targetElementInitialBoundingBox };
+        document.addEventListener('touchmove', this.touchMove);
+        document.addEventListener('touchend', this.mouseUp);
+      }
+      )).subscribe();
   }
 
   ngOnDestroy() {
     this.mousedownSubscription.unsubscribe();
+    this.touchSubscription.unsubscribe()
   }
 
 }
