@@ -13,6 +13,7 @@ div.examples {
     margin: 0px 30px;
     &.heroes {
       div.list mat-card{
+        touch-action: none;
         height: 80px;
         width: 80px;
         margin: 8px 0;
@@ -30,6 +31,7 @@ mat-grid-list {
   margin: 15px;
   mat-grid-tile{
     background: white;
+    touch-action: none;
     .header {
       position: absolute;
       top: 0;
